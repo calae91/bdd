@@ -1,0 +1,46 @@
+ex8:
+SELECT s.nom,COUNT(DISTINCT i.numero) / COUNT(DISTINCT h.no_malade)
+FROM service s, infirmier i, hospitalisation h
+WHERE s.code = i.code_service
+	AND s.code = h.code_service
+GROUP BY s.nom
+
+ex9&10:
+SELECT e.nom,e.prenom
+FROM employe e, docteur d
+WHERE e.numero = d.numero AND e.numero 
+	IN(SELECT DISTINCT s.no_docteur
+	FROM soigne s, hospitalisation h
+	WHERE h.no_malade = s.no_malade)
+
+SELECT e.nom,e.prenom
+FROM employe e, docteur d
+WHERE e.numero = d.numero AND NOT EXISTS(SELECT DISTINCT s.no_docteur
+	FROM soigne s, hospitalisation h
+	WHERE h.no_malade = s.no_malade
+        AND s.no_docteur = d.numero)
+
+ex11:
+SELECT e.nom, e.prenom, COUNT(s.no_malade)
+FROM employe e, soigne s, hospitalisation h
+WHERE s.no_docteur = e.numero
+AND h.no_malade = s.no_malade
+GROUP BY e.nom
+UNION SELECT e.nom,e.prenom, 0
+	FROM employe e, docteur d
+	WHERE e.numero = d.numero AND NOT EXISTS(SELECT DISTINCT s.no_docteur
+		FROM soigne s, hospitalisation h
+		WHERE h.no_malade = s.no_malade
+        	AND s.no_docteur = d.numero)
+
+SELECT e.nom, e.prenom, COUNT(DISTINCT s.no_malade)
+FROM employe e, soigne s RIGHT JOIN hospitalisation h ON s.no_malade = h.no_malade
+WHERE e.numero = s.no_docteur
+GROUP BY e.numero, e.nom, e.prenom
+
+ex12:
+SELECT e.nom, e.prenom, COUNT(DISTINCT s.no_malade)AS bonjour
+FROM employe e, docteur d JOIN RIGHT(soigne s JOIN hospitalisation h ON s.no_malade = h.no_malade)k ON k.no_docteur = d.numero
+WHERE e.numero = s.no_docteur
+GROUP BY e.nom, e.prenom
+ORDER BY bonjour
